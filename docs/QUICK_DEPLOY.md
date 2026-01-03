@@ -196,28 +196,3 @@ git push origin main
 
 ---
 
-## 成本估算
-
-### 免费额度（个人使用）
-
-| 服务 | 资源 | 额度 |
-|------|------|------|
-| EdgeOne | 请求数 | 10 万次/月 |
-| EdgeOne | 流量 | 10GB/月 |
-| Supabase | 数据库 | 500MB |
-| Supabase | API 调用 | 5 万次/月 |
-
-**适用场景**：个人或小团队使用，约 50 个用户，5000 个密码条目
-
-### 付费升级（超出免费额度）
-
-- EdgeOne 基础版：¥99/月
-- Supabase Pro：$25/月
-
----
-
-## 技术支持
-
-- EdgeOne 文档：https://cloud.tencent.com/document/product/1552
-- Supabase 文档：https://supabase.com/docs
-- GitHub Issues：在仓库提出问题
