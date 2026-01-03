@@ -1,10 +1,10 @@
 import { SupabaseClient } from './supabase-client.ts';
 
 // API Handler - 处理 /api/* 路由
-export async function onRequest(context: any) {
-  const { request, env } = context;
+export async function handleRequest(request: any, env: any) {
   const url = new URL(request.url);
   const path = url.pathname;
+  const method = request.method;
 
   const headers = {
     'Content-Type': 'application/json',
@@ -14,7 +14,7 @@ export async function onRequest(context: any) {
   };
 
   // OPTIONS 预检请求
-  if (request.method === 'OPTIONS') {
+  if (method === 'OPTIONS') {
     return new Response(null, { headers, status: 200 });
   }
 
