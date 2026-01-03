@@ -1,5 +1,7 @@
+import { SupabaseClient } from '../supabase-client.ts';
+
 // Identity Handler - 处理 /identity/* 路由
-export async function onRequest(context) {
+export async function onRequest(context: any) {
   const { request, env } = context;
   const url = new URL(request.url);
   const path = url.pathname;
@@ -14,6 +16,11 @@ export async function onRequest(context) {
   if (request.method === 'OPTIONS') {
     return new Response(null, { headers, status: 200 });
   }
+
+  // 初始化 Supabase 客户端
+  const supabase = env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY
+    ? new SupabaseClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY)
+    : null;
 
   if (path === '/identity/connect' || path.includes('/identity/connect')) {
     const data = {
@@ -33,14 +40,69 @@ export async function onRequest(context) {
   }
 
   if (path === '/identity/accounts/register' || path.includes('/identity/accounts/register')) {
+    if (!supabase) {
+      return new Response(
+        JSON.stringify({ error: 'Database not configured' }),
+        { headers, status: 500 }
+      );
+    }
+
     const body = await request.json().catch(() => ({}));
-    const data = {
-      success: true,
-      message: 'Registration endpoint',
-      email: body.email || 'not provided',
-      supabaseUrl: env.SUPABASE_URL ? 'configured' : 'missing',
-    };
-    return new Response(JSON.stringify(data), { headers });
+
+    if (!body.email || !body.masterPasswordHash || !body.key) {
+      return new Response(
+        JSON.stringify({ error: 'Email, password and encryption key are required' }),
+        { headers, status: 400 }
+      );
+    }
+
+    // 检查邮箱是否在白名单
+    const allowedEmails = env.ALLOWED_EMAILS || '*';
+    if (allowedEmails !== '*' && !isEmailAllowed(body.email, allowedEmails)) {
+      return new Response(
+        JSON.stringify({ error: 'Email is not allowed' }),
+        { headers, status: 403 }
+      );
+    }
+
+    try {
+      // 检查用户是否已存在
+      const existingUser = await supabase.getUserByEmail(body.email);
+      if (existingUser) {
+        return new Response(
+          JSON.stringify({ error: 'Email already registered' }),
+          { headers, status: 400 }
+        );
+      }
+
+      // 创建新用户
+      const newUser = {
+        email: body.email,
+        email_verified: false,
+        password_hash: body.masterPasswordHash,
+        password_salt: body.masterPasswordSalt || '',
+        key: body.key,
+        private_key: body.private_key || '',
+        public_key: body.public_key || '',
+      };
+
+      const result = await supabase.createUser(newUser);
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: 'User registered successfully',
+          email: body.email,
+          userId: result.id,
+        }),
+        { headers, status: 201 }
+      );
+    } catch (error: any) {
+      return new Response(
+        JSON.stringify({ error: error.message || 'Registration failed' }),
+        { headers, status: 500 }
+      );
+    }
   }
 
   const response = {
@@ -51,4 +113,20 @@ export async function onRequest(context) {
     timestamp: new Date().toISOString(),
   };
   return new Response(JSON.stringify(response), { headers });
+}
+
+// 检查邮箱是否在白名单
+function isEmailAllowed(email: string, allowedEmails: string) {
+  if (allowedEmails === '*') return true;
+
+  const allowedList = allowedEmails.split(',').map(e => e.trim());
+  for (const allowed of allowedList) {
+    if (allowed.startsWith('*@')) {
+      const domain = allowed.substring(2);
+      if (email.endsWith('@' + domain)) return true;
+    } else if (email === allowed) {
+      return true;
+    }
+  }
+  return false;
 }
