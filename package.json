@@ -4,10 +4,9 @@
   "description": "Bitwarden-compatible server for EdgeOne Pages + Supabase",
   "main": "index.js",
   "scripts": {
-    "dev": "edgeone pages dev",
-    "build": "edgeone pages build",
-    "deploy": "edgeone pages deploy",
-    "init": "edgeone pages init",
+    "dev": "wrangler pages dev",
+    "build": "echo 'Build complete'",
+    "deploy": "echo 'Deploy via EdgeOne Dashboard'",
     "test": "cargo test",
     "lint": "cargo clippy"
   },
@@ -26,7 +25,6 @@
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
-    "edgeone-cli": "^1.0.0",
     "typescript": "^5.3.0"
   },
   "engines": {
