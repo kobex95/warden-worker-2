@@ -23,7 +23,7 @@ export async function onRequest(context) {
 
   try {
     // 根据路由处理请求
-    if (path.includes('/identity/connect')) {
+    if (path === '/identity/connect' || path.includes('/identity/connect')) {
       // 连接端点
       const data = {
         version: '1.59.1',
@@ -39,24 +39,25 @@ export async function onRequest(context) {
       return new Response(JSON.stringify(data), { headers });
     }
 
-    if (path.includes('/identity/accounts/register')) {
+    if (path === '/identity/accounts/register' || path.includes('/identity/accounts/register')) {
       // 注册端点（示例）
       const body = await request.json().catch(() => ({}));
       const data = {
         success: true,
-        message: 'Registration endpoint is not implemented yet',
+        message: 'Registration endpoint - ready for implementation',
         email: body.email || 'not provided',
         supabaseUrl: supabaseUrl ? 'configured' : 'missing',
       };
       return new Response(JSON.stringify(data), { headers });
     }
 
-    // 默认响应
+    // 默认响应 - 任何 /identity 开头的请求
     const response = {
       path: path,
       method: request.method,
       message: 'Identity endpoint',
       availableRoutes: ['/identity/connect', '/identity/accounts/register'],
+      timestamp: new Date().toISOString(),
     };
     return new Response(JSON.stringify(response), { headers });
 

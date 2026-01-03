@@ -1,4 +1,5 @@
 // API Handler - 处理 /api/* 路由
+// 文件名：api/[...path].ts 或 api.ts
 export async function onRequest(context) {
   const { request, env } = context;
   const url = new URL(request.url);
@@ -23,7 +24,7 @@ export async function onRequest(context) {
 
   try {
     // 根据路由处理请求
-    if (path.includes('/api/config')) {
+    if (path === '/api/config' || path.includes('/api/config')) {
       // 配置端点
       const config = {
         version: '0.1.0',
@@ -35,22 +36,23 @@ export async function onRequest(context) {
       return new Response(JSON.stringify(config), { headers });
     }
 
-    if (path.includes('/api/sync')) {
+    if (path === '/api/sync' || path.includes('/api/sync')) {
       // 同步端点（示例）
       const data = {
         success: true,
-        message: 'Sync endpoint is not implemented yet',
+        message: 'Sync endpoint - ready for implementation',
         supabaseUrl: supabaseUrl ? 'configured' : 'missing',
       };
       return new Response(JSON.stringify(data), { headers });
     }
 
-    // 默认响应
+    // 默认响应 - 任何 /api 开头的请求
     const response = {
       path: path,
       method: request.method,
       message: 'API endpoint',
       availableRoutes: ['/api/config', '/api/sync'],
+      timestamp: new Date().toISOString(),
     };
     return new Response(JSON.stringify(response), { headers });
 
