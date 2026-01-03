@@ -1,11 +1,11 @@
-// Supabase 数据库迁移脚本
-// 在 Supabase SQL Editor 中执行此脚本
+-- Supabase 数据库迁移脚本
+-- 在 Supabase SQL Editor 中执行此脚本
 
-// 1. 启用必要的扩展
+-- 1. 启用必要的扩展
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
-// 2. 创建用户表
+-- 2. 创建用户表
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -28,22 +28,7 @@ CREATE TABLE IF NOT EXISTS users (
     premium BOOLEAN DEFAULT false
 );
 
-// 3. 创建密码条目表
-CREATE TABLE IF NOT EXISTS ciphers (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    folder_id UUID REFERENCES folders(id) ON DELETE SET NULL,
-    type VARCHAR(50) NOT NULL DEFAULT 'login', -- login, secureNote, card, identity
-    data JSONB NOT NULL, -- 加密的密码数据
-    favorites BOOLEAN DEFAULT false,
-    attachments JSONB DEFAULT '[]',::jsonb,
-    collection_ids JSONB DEFAULT '[]',::jsonb,
-    creation_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    revision_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    deleted_date TIMESTAMP WITH TIME ZONE
-);
-
-// 4. 创建文件夹表
+-- 3. 创建文件夹表 (先创建 folders 表，因为 ciphers 表要引用它)
 CREATE TABLE IF NOT EXISTS folders (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -52,7 +37,22 @@ CREATE TABLE IF NOT EXISTS folders (
     revision_date TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-// 5. 创建设备表 (用于会话管理)
+-- 4. 创建密码条目表
+CREATE TABLE IF NOT EXISTS ciphers (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    folder_id UUID REFERENCES folders(id) ON DELETE SET NULL,
+    type VARCHAR(50) NOT NULL DEFAULT 'login', -- login, secureNote, card, identity
+    data JSONB NOT NULL, -- 加密的密码数据
+    favorites BOOLEAN DEFAULT false,
+    attachments JSONB DEFAULT '[]'::jsonb,
+    collection_ids JSONB DEFAULT '[]'::jsonb,
+    creation_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    revision_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    deleted_date TIMESTAMP WITH TIME ZONE
+);
+
+-- 6. 创建设备表 (用于会话管理)
 CREATE TABLE IF NOT EXISTS devices (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS devices (
     user_agent TEXT
 );
 
-// 6. 创建会话表
+-- 7. 创建会话表
 CREATE TABLE IF NOT EXISTS sessions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -80,7 +80,7 @@ CREATE TABLE IF NOT EXISTS sessions (
     is_revoked BOOLEAN DEFAULT false
 );
 
-// 7. 创建审计日志表
+-- 8. 创建审计日志表
 CREATE TABLE IF NOT EXISTS audit_logs (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES users(id) ON DELETE SET NULL,
@@ -93,7 +93,7 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-// 8. 创建索引以提升查询性能
+-- 9. 创建索引以提升查询性能
 CREATE INDEX IF NOT EXISTS idx_ciphers_user_id ON ciphers(user_id);
 CREATE INDEX IF NOT EXISTS idx_ciphers_folder_id ON ciphers(folder_id);
 CREATE INDEX IF NOT EXISTS idx_ciphers_type ON ciphers(type);
@@ -115,7 +115,7 @@ CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON audit_logs(action);
 
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 
-// 9. 创建触发器自动更新 updated_at
+-- 10. 创建触发器自动更新 updated_at
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -133,7 +133,7 @@ CREATE TRIGGER update_folders_revision_date BEFORE UPDATE ON folders
 CREATE TRIGGER update_ciphers_revision_date BEFORE UPDATE ON ciphers
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-// 10. 启用 Row Level Security (RLS)
+-- 11. 启用 Row Level Security (RLS)
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ciphers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE folders ENABLE ROW LEVEL SECURITY;
@@ -141,7 +141,7 @@ ALTER TABLE devices ENABLE ROW LEVEL SECURITY;
 ALTER TABLE sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 
-// 11. RLS 策略 - 用户只能访问自己的数据
+-- 12. RLS 策略 - 用户只能访问自己的数据
 CREATE POLICY "Users can only view their own data" ON users
     FOR SELECT USING (true);
 
@@ -166,7 +166,7 @@ CREATE POLICY "Sessions belong to their user" ON sessions
 CREATE POLICY "Audit logs belong to their user" ON audit_logs
     FOR SELECT USING (true);
 
-// 12. 创建清理过期会话的函数
+-- 13. 创建清理过期会话的函数
 CREATE OR REPLACE FUNCTION clean_expired_sessions()
 RETURNS void AS $$
 BEGIN
@@ -175,8 +175,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-// 13. 创建定时任务清理过期会话 (每天执行一次)
-// 注意: Supabase 不直接支持 pg_cron,需要在外部调用或使用 Supabase Edge Functions
+-- 14. 创建定时任务清理过期会话 (每天执行一次)
+-- 注意: Supabase 不直接支持 pg_cron,需要在外部调用或使用 Supabase Edge Functions
 CREATE OR REPLACE FUNCTION cleanup_old_data()
 RETURNS void AS $$
 BEGIN
@@ -190,6 +190,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-// 14. 创建初始测试用户 (可选)
+-- 15. 创建初始测试用户 (可选)
 -- INSERT INTO users (email, email_verified, password_hash, password_salt, key)
 -- VALUES ('test@example.com', true, 'hash', 'salt', 'encrypted_key');
