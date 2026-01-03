@@ -5,29 +5,15 @@
   "main": "index.js",
   "scripts": {
     "dev": "wrangler pages dev",
-    "build": "echo 'Build complete'",
-    "deploy": "echo 'Deploy via EdgeOne Dashboard'",
-    "test": "cargo test",
-    "lint": "cargo clippy"
+    "build": "echo 'Static deployment'",
+    "deploy": "echo 'Deploy via EdgeOne Dashboard'"
   },
   "keywords": [
     "bitwarden",
     "password-manager",
     "edgeone",
-    "supabase",
-    "rust",
-    "wasm"
+    "supabase"
   ],
   "author": "deepubuntu",
-  "license": "MIT",
-  "dependencies": {
-    "supabase-js": "^2.39.0"
-  },
-  "devDependencies": {
-    "@types/node": "^20.10.0",
-    "typescript": "^5.3.0"
-  },
-  "engines": {
-    "node": ">=18.0.0"
-  }
+  "license": "MIT"
 }
