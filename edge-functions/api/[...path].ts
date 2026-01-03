@@ -13,6 +13,7 @@ export async function onRequest(context: any) {
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
   };
 
+  // OPTIONS 预检请求
   if (request.method === 'OPTIONS') {
     return new Response(null, { headers, status: 200 });
   }
@@ -22,6 +23,7 @@ export async function onRequest(context: any) {
     ? new SupabaseClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY)
     : null;
 
+  // 处理配置请求
   if (path === '/api/config' || path.includes('/api/config')) {
     const config = {
       version: '0.1.0',
@@ -36,6 +38,7 @@ export async function onRequest(context: any) {
     return new Response(JSON.stringify(config), { headers });
   }
 
+  // 处理同步请求
   if (path === '/api/sync' || path.includes('/api/sync')) {
     if (!supabase) {
       return new Response(
@@ -101,17 +104,4 @@ export async function onRequest(context: any) {
     timestamp: new Date().toISOString(),
   };
   return new Response(JSON.stringify(response), { headers });
-}
-
-// Cloudflare Pages 风格的导出
-export async function onRequestPost(context: any) {
-  return onRequest(context);
-}
-
-export async function onRequestGet(context: any) {
-  return onRequest(context);
-}
-
-export async function onRequestOptions(context: any) {
-  return onRequest(context);
 }
