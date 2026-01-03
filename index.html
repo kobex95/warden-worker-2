@@ -5,221 +5,316 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Warden-Worker API</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding: 1rem 2rem;
             display: flex;
             align-items: center;
-            justify-content: center;
-            color: white;
-            padding: 20px;
+            justify-content: space-between;
+            z-index: 1000;
         }
-        .container {
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .status-badge {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.5);
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: #10b981;
+        }
+        .main-content {
+            display: flex;
+            padding: 5rem 2rem 2rem;
+            gap: 2rem;
+            min-height: 100vh;
+        }
+        .left-panel {
+            width: 380px;
+            flex-shrink: 0;
+            position: fixed;
+            top: 5rem;
+            left: 2rem;
+            bottom: 2rem;
+            overflow-y: auto;
+        }
+        .right-panel {
+            flex: 1;
+            margin-left: 380px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             text-align: center;
             padding: 2rem;
-            max-width: 600px;
-            width: 100%;
         }
-        h1 {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-        p {
-            font-size: 1.2rem;
-            margin-bottom: 2rem;
-            opacity: 0.9;
-        }
-        .tabs {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-        .tab-btn {
-            flex: 1;
-            padding: 1rem;
-            background: rgba(255,255,255,255,0.1);
-            border: 2px solid rgba(255,255,255,255,0.3);
-            border-radius: 8px;
-            color: white;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .tab-btn:hover {
-            background: rgba(255,255,255,255,0.2);
-        }
-        .tab-btn.active {
-            background: rgba(255,255,255,255,0.2);
-            border-color: white;
-        }
-        .panel {
-            display: none;
-            background: rgba(255,255,255,255,0.1);
+        .card {
+            background: rgba(255,255,255,0.03);
             backdrop-filter: blur(10px);
-            border-radius: 12px;
-            padding: 2rem;
-            border: 1px solid rgba(255,255,255,255,0.2);
-            text-align: left;
-        }
-        .panel.active {
-            display: block;
-        }
-        .form-group {
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 1.5rem;
             margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
         }
+        .card:hover {
+            background: rgba(255,255,255,0.05);
+            border-color: rgba(255,255,255,0.12);
+        }
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #e0e0e0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .form-group { margin-bottom: 1rem; }
         .form-group label {
             display: block;
-            margin-bottom: 0.5rem;
-            font-weight: bold;
+            margin-bottom: 0.4rem;
+            font-size: 0.85rem;
+            color: #a0a0a0;
         }
         .form-group input {
             width: 100%;
-            padding: 0.8rem;
-            border-radius: 6px;
-            border: 1px solid rgba(255,255,255,255,0.3);
-            background: rgba(0,0,0,0.2);
+            padding: 0.7rem 0.9rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.15);
+            background: rgba(0,0,0,0.3);
             color: white;
-            font-size: 1rem;
+            font-size: 0.95rem;
+            transition: all 0.3s;
         }
-        .form-group input::placeholder {
-            color: rgba(255,255,255,255,0.5);
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
         }
-        .submit-btn {
+        .btn {
             width: 100%;
-            padding: 1rem;
-            background: #10b981;
+            padding: 0.8rem;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             color: white;
-            font-size: 1.1rem;
-            font-weight: bold;
+            font-size: 0.95rem;
+            font-weight: 600;
             cursor: pointer;
-            transition: background 0.3s;
-            margin-top: 1rem;
+            transition: all 0.3s;
         }
-        .submit-btn:hover {
-            background: #059669;
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
-        .submit-btn:disabled {
-            background: #6b7280;
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .btn-primary:disabled {
+            opacity: 0.6;
             cursor: not-allowed;
+            transform: none;
+        }
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.15);
         }
         .result {
-            margin-top: 1.5rem;
-            padding: 1rem;
-            border-radius: 6px;
+            margin-top: 1rem;
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
             display: none;
         }
         .result.success {
-            background: rgba(16, 185, 129, 0.3);
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
             display: block;
+            color: #10b981;
         }
         .result.error {
-            background: rgba(239, 68, 68, 0.3);
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
             display: block;
+            color: #f87171;
         }
-        .api-endpoint {
-            background: rgba(0,0,0,0.2);
+        .api-link {
+            display: block;
+            background: rgba(0,0,0,0.3);
             padding: 0.8rem 1rem;
-            border-radius: 6px;
+            border-radius: 8px;
             font-family: 'Courier New', monospace;
-            margin: 0.5rem 0;
-            display: inline-block;
+            font-size: 0.85rem;
+            margin: 0.6rem 0;
             text-align: left;
-            width: 100%;
-            word-break: break-all;
+            text-decoration: none;
+            color: #a0a0a0;
+            transition: all 0.3s;
+            border: 1px solid rgba(255,255,255,0.05);
         }
-        .info-box {
-            background: rgba(255,255,255,255,0.1);
-            backdrop-filter: blur(10px);
+        .api-link:hover {
+            background: rgba(102, 126, 234, 0.2);
+            color: white;
+            border-color: rgba(102, 126, 234, 0.5);
+        }
+        .hero-title {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: none;
+        }
+        .hero-subtitle {
+            font-size: 1.3rem;
+            color: #a0a0a0;
+            margin-bottom: 3rem;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            max-width: 900px;
+        }
+        .feature-item {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
             border-radius: 12px;
             padding: 1.5rem;
-            margin-bottom: 2rem;
-            border: 1px solid rgba(255,255,255,255,0.2);
+            transition: all 0.3s;
         }
-        .info-box h3 {
-            margin-bottom: 1rem;
+        .feature-item:hover {
+            transform: translateY(-4px);
+            background: rgba(255,255,255,0.05);
         }
-        .info-box code {
-            background: rgba(0,0,0,0.2);
-            padding: 0.3rem 0.6rem;
-            border-radius: 4px;
-            font-family: 'Courier New', monospace;
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 0.8rem;
+        }
+        .feature-title {
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+            color: #e0e0e0;
+        }
+        .feature-desc {
+            font-size: 0.85rem;
+            color: #a0a0a0;
+        }
+        .divider {
+            height: 1px;
+            background: rgba(255,255,255,0.1);
+            margin: 1.5rem 0;
+        }
+        @media (max-width: 1024px) {
+            .left-panel {
+                position: relative;
+                top: 0;
+                left: 0;
+                width: 100%;
+                max-width: 400px;
+                margin-bottom: 2rem;
+            }
+            .main-content {
+                flex-direction: column;
+                padding: 5rem 1rem 2rem;
+            }
+            .right-panel {
+                margin-left: 0;
+            }
+            .hero-title { font-size: 2.5rem; }
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="status">✅ 运行中</div>
-        <h1>Warden-Worker API</h1>
-        <p>Bitwarden 兼容的密码管理器后端服务</p>
+    <div class="header">
+        <div class="logo">Warden-Worker</div>
+        <div class="status-badge">运行中</div>
+    </div>
 
-        <div class="tabs">
-            <button class="tab-btn active" onclick="showPanel('register')">用户注册</button>
-            <button class="tab-btn" onclick="showPanel('api')">API 测试</button>
-        </div>
-
-        <!-- 注册面板 -->
-        <div id="register-panel" class="panel active">
-            <form id="registerForm" onsubmit="handleRegister(event)">
-                <div class="form-group">
-                    <label>邮箱地址（必须在白名单：*@189.cn, *@qq.com）</label>
-                    <input type="email" id="email" required placeholder="test@189.cn">
-                </div>
-                <div class="form-group">
-                    <label>主密码（用于生成哈希）</label>
-                    <input type="password" id="password" required placeholder="YourMasterPassword">
-                </div>
-                <button type="submit" class="submit-btn" id="registerBtn">注册账号</button>
-            </form>
-            <div id="registerResult" class="result"></div>
-        </div>
-
-        <!-- API 测试面板 -->
-        <div id="api-panel" class="panel">
-            <div class="info-box">
-                <h3>测试 API 端点</h3>
-                <p>直接访问以下链接测试：</p>
-                <div class="api-endpoint">GET <a href="/identity/connect" target="_blank" style="color: white;">/identity/connect</a></div>
-                <div class="api-endpoint">GET <a href="/api/config" target="_blank" style="color: white;">/api/config</a></div>
+    <div class="main-content">
+        <div class="left-panel">
+            <div class="card">
+                <div class="card-title">📝 用户注册</div>
+                <form id="registerForm" onsubmit="handleRegister(event)">
+                    <div class="form-group">
+                        <label>邮箱地址（白名单：@189.cn, @qq.com）</label>
+                        <input type="email" id="email" required placeholder="test@189.cn">
+                    </div>
+                    <div class="form-group">
+                        <label>主密码（用于生成哈希）</label>
+                        <input type="password" id="password" required placeholder="YourMasterPassword">
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="registerBtn">注册账号</button>
+                </form>
+                <div id="registerResult" class="result"></div>
             </div>
-            <div class="form-group">
-                <button class="submit-btn" onclick="testAPI()">测试连接</button>
+
+            <div class="card">
+                <div class="card-title">🔧 API 测试</div>
+                <p style="color: #a0a0a0; font-size: 0.85rem; margin-bottom: 1rem;">快速测试 API 端点连接</p>
+                <button class="btn btn-secondary" onclick="testAPI()" style="margin-bottom: 1rem;">测试连接</button>
+                <div class="divider"></div>
+                <div class="api-link">
+                    GET <a href="/identity/connect" target="_blank" style="color: inherit;">/identity/connect</a>
+                </div>
+                <div class="api-link">
+                    GET <a href="/api/config" target="_blank" style="color: inherit;">/api/config</a>
+                </div>
+                <div id="apiResult" class="result"></div>
             </div>
-            <div id="apiResult" class="result"></div>
         </div>
 
-        <div class="tech-stack">
-            <span class="tech-tag">🦀 Rust</span>
-            <span class="tech-tag">🔥 EdgeOne</span>
-            <span class="tech-tag">🗄️ Supabase</span>
-            <span class="tech-tag">🔒 Bitwarden</span>
+        <div class="right-panel">
+            <h1 class="hero-title">Warden-Worker</h1>
+            <p class="hero-subtitle">Bitwarden 兼容的密码管理器后端服务</p>
+
+            <div class="feature-grid">
+                <div class="feature-item">
+                    <div class="feature-icon">🦀</div>
+                    <div class="feature-title">高性能 Rust</div>
+                    <div class="feature-desc">采用 Rust 构建核心，确保极致性能与安全</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🔥</div>
+                    <div class="feature-title">EdgeOne 边缘</div>
+                    <div class="feature-desc">全球边缘节点部署，超低延迟访问体验</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🗄️</div>
+                    <div class="feature-title">Supabase</div>
+                    <div class="feature-desc">PostgreSQL 数据库，安全可靠的存储方案</div>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        // 切换面板
-        function showPanel(panelName) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active'));
-
-            if (panelName === 'register') {
-                document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
-                document.getElementById('register-panel').classList.add('active');
-            } else {
-                document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
-                document.getElementById('api-panel').classList.add('active');
-            }
-        }
-
-        // 生成简单的哈希（仅用于演示，实际应使用 PBKDF2）
         async function simpleHash(password, salt) {
             const encoder = new TextEncoder();
             const data = encoder.encode(password + salt);
@@ -229,7 +324,6 @@
             return hashHex;
         }
 
-        // 生成随机字符串
         function generateRandom(length) {
             const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
             let result = '';
@@ -239,7 +333,6 @@
             return result;
         }
 
-        // 处理注册
         async function handleRegister(event) {
             event.preventDefault();
 
@@ -258,11 +351,8 @@
             btn.textContent = '注册中...';
 
             try {
-                // 生成盐值和哈希
                 const salt = generateRandom(32);
                 const hash = await simpleHash(password, salt);
-
-                // 生成密钥
                 const key = generateRandom(64);
                 const publicKey = generateRandom(128);
                 const privateKey = generateRandom(128);
@@ -283,14 +373,14 @@
                 const data = await response.json();
 
                 if (response.ok && data.success) {
-                    resultDiv.innerHTML = `<strong>注册成功！</strong><br>邮箱: ${data.email}<br>用户ID: ${data.userId}`;
+                    resultDiv.innerHTML = '<strong>注册成功！</strong><br>邮箱: ' + data.email + '<br>用户ID: ' + data.userId;
                     resultDiv.className = 'result success';
                 } else {
-                    resultDiv.innerHTML = `<strong>注册失败</strong><br>${data.error || data.message || '未知错误'}`;
+                    resultDiv.innerHTML = '<strong>注册失败</strong><br>' + (data.error || data.message || '未知错误');
                     resultDiv.className = 'result error';
                 }
             } catch (error) {
-                resultDiv.innerHTML = `<strong>错误</strong><br>${error.message}`;
+                resultDiv.innerHTML = '<strong>错误</strong><br>' + error.message;
                 resultDiv.className = 'result error';
             } finally {
                 btn.disabled = false;
@@ -298,7 +388,6 @@
             }
         }
 
-        // 测试 API
         async function testAPI() {
             const resultDiv = document.getElementById('apiResult');
             resultDiv.textContent = '测试中...';
@@ -308,10 +397,10 @@
                 const response = await fetch('/identity/connect');
                 const data = await response.json();
 
-                resultDiv.innerHTML = `<strong>API 正常！</strong><br>版本: ${data.version}<br>名称: ${data.name}`;
+                resultDiv.innerHTML = '<strong>API 正常！</strong><br>版本: ' + data.version + '<br>名称: ' + data.name;
                 resultDiv.className = 'result success';
             } catch (error) {
-                resultDiv.innerHTML = `<strong>API 测试失败</strong><br>${error.message}`;
+                resultDiv.innerHTML = '<strong>API 测试失败</strong><br>' + error.message;
                 resultDiv.className = 'result error';
             }
         }
