@@ -26,6 +26,8 @@ export async function onRequest(context) {
         'sendVerificationEmail',
         'hmacVerification',
       ],
+      allowedEmails: env.ALLOWED_EMAILS || '*',
+      environment: env.APP_ENV || 'development',
     };
     return new Response(JSON.stringify(data), { headers });
   }

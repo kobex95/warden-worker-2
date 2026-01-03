@@ -22,6 +22,9 @@ export async function onRequest(context) {
       features: ['password-manager', 'sync', 'two-factor'],
       apiUrl: '/api',
       identityUrl: '/identity',
+      supabaseConfigured: !!env.SUPABASE_URL,
+      jwtConfigured: !!env.JWT_SECRET,
+      logLevel: env.LOG_LEVEL || 'info',
     };
     return new Response(JSON.stringify(config), { headers });
   }
