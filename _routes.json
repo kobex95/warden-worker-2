@@ -1,5 +1,15 @@
 {
   "version": 1,
   "include": ["/*"],
-  "exclude": ["/assets/*"]
+  "exclude": ["/assets/*"],
+  "functions": [
+    {
+      "path": "/api/*",
+      "handler": "edge-functions/api.js"
+    },
+    {
+      "path": "/identity/*",
+      "handler": "edge-functions/identity.js"
+    }
+  ]
 }
