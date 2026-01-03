@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warden-Worker API</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        .container {
+            text-align: center;
+            padding: 2rem;
+            max-width: 600px;
+        }
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+        .api-info {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .api-endpoint {
+            background: rgba(0,0,0,0.2);
+            padding: 0.8rem 1rem;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            margin: 0.5rem 0;
+            display: inline-block;
+            text-align: left;
+            width: 100%;
+        }
+        .status {
+            display: inline-block;
+            padding: 0.5rem 1.5rem;
+            background: #10b981;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+        .tech-stack {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+        .tech-tag {
+            background: rgba(255,255,255,0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="status">✅ 运行中</div>
+        <h1>Warden-Worker API</h1>
+        <p>Bitwarden 兼容的密码管理器后端服务</p>
+
+        <div class="api-info">
+            <h3>API 端点</h3>
+            <div class="api-endpoint">/api/* - 核心功能</div>
+            <div class="api-endpoint">/identity/* - 身份验证</div>
+        </div>
+
+        <p>基于 EdgeOne + Supabase 构建</p>
+
+        <div class="tech-stack">
+            <span class="tech-tag">🦀 Rust</span>
+            <span class="tech-tag">🔥 EdgeOne</span>
+            <span class="tech-tag">🗄️ Supabase</span>
+            <span class="tech-tag">🔒 Bitwarden</span>
+        </div>
+    </div>
+</body>
+</html>
